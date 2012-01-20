@@ -40,7 +40,9 @@
 #include "mbox.h"
 #include "usbnotifier.h"
 
-void
+int verbose = 0;
+
+static void
 update_status (struct usbnotifier *notifier, struct mbox **mboxes, int mbox_count)
 {
     int color = 0;
@@ -52,6 +54,15 @@ update_status (struct usbnotifier *notifier, struct mbox **mboxes, int mbox_coun
     usbnotifier_flash_to (notifier, color);
 }
 
+static void
+usage (void)
+{
+    fprintf (stderr, "usage: usbiff [options]+ [filename]+\n");
+    fprintf (stderr, "\n");
+    fprintf (stderr, "Options:\n");
+    fprintf (stderr, "  -v    Increase verbosity\n");
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -59,10 +70,26 @@ main (int argc, char *argv[])
     struct usbnotifier *notifier;
     int mbox_count = 0;
 
+    int ch;
+    while ((ch = getopt (argc, argv, "v")) != -1) {
+	switch (ch) {
+	case 'v':
+	    ++verbose;
+	    break;
+	case '?':
+	    usage ();
+	    exit (EXIT_FAILURE);
+	    break;
+	}
+    }
+
+    argv += optind;
+    argc -= optind;
+
     notifier = usbnotifier_new ();
     usbnotifier_set_color (notifier, COLOR_NONE);
 
-    if (argc == 1) {
+    if (argc == 0) {
 	mbox_count = 1;
 	mboxes = malloc (sizeof (*mboxes));
 
@@ -78,11 +105,11 @@ main (int argc, char *argv[])
 	mboxes[0] = mbox_new (mbox);
 
     } else {
-	mbox_count = argc - 1;
+	mbox_count = argc;
 	mboxes = malloc (mbox_count * sizeof (*mboxes));
 
 	for (int i = 0; i < mbox_count; i++) {
-	    mboxes[i] = mbox_new (argv[i+1]);
+	    mboxes[i] = mbox_new (argv[i]);
 	    mbox_set_color (mboxes[i], COLOR_BLUE);
 	}
     }

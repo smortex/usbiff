@@ -38,6 +38,8 @@
 #include "mbox.h"
 #include "usbnotifier.h"
 
+extern int verbose;
+
 struct mbox {
     int fd;
     char *filename;
@@ -83,6 +85,7 @@ mbox_get_color (struct mbox *mbox)
 {
     return mbox->color;
 }
+
 void
 mbox_set_color (struct mbox *mbox, int color)
 {
@@ -98,10 +101,12 @@ mbox_check (struct mbox *mbox)
 
 
     if (sb.st_atime < sb.st_mtime) {
-	printf ("Lain has new mail in %s\n", mbox->filename);
+	if (verbose)
+	    printf ("[%s] New mail arrived.\n", mbox->filename);
 	return mbox->has_new_mail = 1;
     } else {
-	printf ("Lain has no mail in %s\n", mbox->filename);
+	if (verbose)
+	    printf ("[%s] Mail has been read.\n", mbox->filename);
 	return mbox->has_new_mail = 0;
     }
 }
