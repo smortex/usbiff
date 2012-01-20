@@ -27,8 +27,11 @@
 #include <err.h>
 #include <libusb.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "usbnotifier.h"
+
+static int current_color = -1;
 
 struct usbnotifier {
     libusb_device_handle *handle;
@@ -59,10 +62,64 @@ error:
 int
 usbnotifier_set_color (struct usbnotifier *notifier, uint8_t color)
 {
+    if (current_color == color)
+	return 0;
+
     uint8_t data[] = { color, 0, 0, 0, 0 };
     int n;
     if (0 != libusb_interrupt_transfer (notifier->handle, 2, data, sizeof (data), &n, 1000))
 	err (EXIT_FAILURE, "libusb_interrupt_transfer");
 
+    current_color = color;
+
     return (n == sizeof (data)) ? 0 : -1;
+}
+
+int
+usbnotifier_flash (struct usbnotifier *notifier, uint8_t color)
+{
+    if (current_color == color)
+	return 0;
+
+    int original_color = current_color;
+
+    struct timespec ts = {
+	.tv_sec  = 1,
+	.tv_nsec = 500000000,
+    };
+
+    usbnotifier_flash_to (notifier, color);
+    nanosleep (&ts, 0);
+    usbnotifier_set_color (notifier, original_color);
+
+    return 0;
+}
+
+int
+usbnotifier_flash_to (struct usbnotifier *notifier, uint8_t color)
+{
+    if (current_color == color)
+	return 0;
+
+    int original_color = current_color;
+
+    struct timespec ts = {
+	.tv_sec  = 0,
+	.tv_nsec = 250000000,
+    };
+
+    usbnotifier_set_color (notifier, color);
+    if (COLOR_NONE == color)
+	return 0; /* Just switch the light off */
+
+    nanosleep (&ts, 0);
+    usbnotifier_set_color (notifier, original_color);
+    nanosleep (&ts, 0);
+    usbnotifier_set_color (notifier, color);
+    nanosleep (&ts, 0);
+    usbnotifier_set_color (notifier, original_color);
+    nanosleep (&ts, 0);
+    usbnotifier_set_color (notifier, color);
+
+    return 0;
 }

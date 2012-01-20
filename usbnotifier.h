@@ -12,5 +12,7 @@
 
 struct usbnotifier *usbnotifier_new (void);
 int		 usbnotifier_set_color (struct usbnotifier *, uint8_t);
+int		 usbnotifier_flash (struct usbnotifier *, uint8_t);
+int		 usbnotifier_flash_to (struct usbnotifier *, uint8_t);
 
 #endif /* !_USBNOTIFIER_H */

@@ -49,7 +49,7 @@ update_status (struct usbnotifier *notifier, struct mbox **mboxes, int mbox_coun
 	    color = mbox_get_color (mboxes[i]);
     }
 
-    usbnotifier_set_color (notifier, color);
+    usbnotifier_flash_to (notifier, color);
 }
 
 int
