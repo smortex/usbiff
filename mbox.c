@@ -25,92 +25,89 @@
  */
 
 #include <sys/types.h>
-
 #include <sys/event.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "mbox.h"
 #include "usbnotifier.h"
 
-void
-update_status (struct usbnotifier *notifier, struct mbox **mboxes, int mbox_count)
+struct mbox {
+    int fd;
+    char *filename;
+    uint8_t color;
+    int has_new_mail;
+};
+
+struct mbox *
+mbox_new (const char *filename)
 {
-    int color = 0;
-    for (int i = mbox_count -1; i >= 0; i--) {
-	if (mbox_has_new_mail (mboxes[i]))
-	    color = mbox_get_color (mboxes[i]);
+    struct mbox *res;
+
+    if ((res = malloc (sizeof (*res)))) {
+	res->fd = 0;
+	res->filename = strdup (filename);
+	res->color    = COLOR_BLUE;
+	mbox_check (res);
     }
 
-    usbnotifier_set_color (notifier, color);
+    return res;
 }
 
 int
-main (int argc, char *argv[])
+mbox_register (struct mbox *mbox, int kq)
 {
-    struct mbox **mboxes;
-    struct usbnotifier *notifier;
-    int mbox_count = 0;
-
-    notifier = usbnotifier_new ();
-    usbnotifier_set_color (notifier, COLOR_NONE);
-
-    if (argc == 1) {
-	mbox_count = 1;
-	mboxes = malloc (sizeof (*mboxes));
-
-	char *mbox = getenv ("MAIL");
-	if (!mbox || (0 == strlen (mbox))) {
-	    char *user = getenv ("USER");
-	    asprintf (&mbox, "/var/mail/%s", user);
-	}
-
-	if (!mbox)
-	    err (EXIT_FAILURE, "No mbox provided");
-
-	mboxes[0] = mbox_new (mbox);
-
-    } else {
-	mbox_count = argc - 1;
-	mboxes = malloc (mbox_count * sizeof (*mboxes));
-
-	for (int i = 0; i < mbox_count; i++) {
-	    mboxes[i] = mbox_new (argv[i+1]);
-	    mbox_set_color (mboxes[i], COLOR_BLUE);
-	}
-    }
-    mbox_set_color (mboxes[0], COLOR_RED);
-
-    int kq = kqueue ();
-    if (kq < 0)
-	err (EXIT_FAILURE, "kqueue");
-
-    for (int i = 0; i < mbox_count; i++)
-	mbox_register (mboxes[i], kq);
-
-    update_status (notifier, mboxes, mbox_count);
-
     struct kevent ke;
 
-    for (;;) {
-	int i = kevent (kq, NULL, 0, &ke, 1, NULL);
-	if (i < 0)
-	    err (EXIT_FAILURE, "kevent");
-
-	struct mbox *mbox = (struct mbox *) ke.udata;
-
-	mbox_register (mbox, kq);
-	mbox_check (mbox);
-
-	update_status (notifier, mboxes, mbox_count);
+    if (mbox->fd) {
+	close (mbox->fd);
+	ke.flags = EV_DELETE;
+	kevent (kq, &ke, 1, NULL, 0, NULL);
     }
 
-    exit(EXIT_SUCCESS);
+    mbox->fd = open (mbox->filename, O_RDONLY);
+
+    EV_SET (&ke, mbox->fd, EVFILT_VNODE, EV_ADD | EV_ONESHOT, NOTE_WRITE, 0, mbox);
+
+    return kevent (kq, &ke, 1, NULL, 0, NULL);
+}
+
+int
+mbox_get_color (struct mbox *mbox)
+{
+    return mbox->color;
+}
+void
+mbox_set_color (struct mbox *mbox, int color)
+{
+    mbox->color = color;
+}
+
+int
+mbox_check (struct mbox *mbox)
+{
+    struct stat sb;
+    if (stat (mbox->filename, &sb) < 0)
+	err (EXIT_FAILURE, "Can't stat mbox \"%s\"", mbox->filename);
+
+
+    if (sb.st_atime < sb.st_mtime) {
+	printf ("Lain has new mail in %s\n", mbox->filename);
+	return mbox->has_new_mail = 1;
+    } else {
+	printf ("Lain has no mail in %s\n", mbox->filename);
+	return mbox->has_new_mail = 0;
+    }
+}
+
+int
+mbox_has_new_mail (struct mbox *mbox)
+{
+    return mbox->has_new_mail;
 }

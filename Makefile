@@ -1,5 +1,5 @@
 PROG=	usbiff
-SRCS=	usbiff.c usbnotifier.c
+SRCS=	mbox.c usbiff.c usbnotifier.c
 
 CC=		clang
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
