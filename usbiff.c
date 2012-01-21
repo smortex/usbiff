@@ -152,6 +152,7 @@ main (int argc, char *argv[])
 
     register_signal (SIGINT, kq);
     register_signal (SIGTERM, kq);
+    register_signal (SIGUSR1, kq);
 
     while (!quit) {
 	struct kevent ke;
@@ -165,6 +166,9 @@ main (int argc, char *argv[])
 	    case SIGINT:
 	    case SIGTERM:
 		quit = 1;
+		break;
+	    case SIGUSR1:
+		usbnotifier_flash (notifier, COLOR_YELLOW);
 		break;
 	    }
 	    break;
