@@ -31,6 +31,8 @@
 
 #include "usbnotifier.h"
 
+#include "common.h"
+
 static int current_color = -1;
 static libusb_context *ctx;
 

@@ -38,6 +38,8 @@
 #include "mbox.h"
 #include "usbnotifier.h"
 
+#include "common.h"
+
 int verbose = 0;
 
 static void

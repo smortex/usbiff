@@ -38,7 +38,7 @@
 #include "mbox.h"
 #include "usbnotifier.h"
 
-extern int verbose;
+#include "common.h"
 
 struct mbox {
     int fd;
