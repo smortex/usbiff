@@ -58,7 +58,8 @@ usage (void)
     fprintf (stderr, "usage: usbiff [options]+ [filename]+\n");
     fprintf (stderr, "\n");
     fprintf (stderr, "Options:\n");
-    fprintf (stderr, "  -v    Increase verbosity\n");
+    fprintf (stderr, "  -f    Do not fork and detach from the shell\n");
+    fprintf (stderr, "  -v    Increase verbosity (implies -f)\n");
 }
 
 int
@@ -67,13 +68,16 @@ main (int argc, char *argv[])
     struct mbox **mboxes;
     struct usbnotifier *notifier;
     int mbox_count = 0;
+    int daemonize  = 1;
     int quit = 0;
 
     int ch;
-    while ((ch = getopt (argc, argv, "v")) != -1) {
+    while ((ch = getopt (argc, argv, "fv")) != -1) {
 	switch (ch) {
 	case 'v':
 	    ++verbose;
+	case 'f':
+	    daemonize = 0;
 	    break;
 	case '?':
 	    usage ();
@@ -84,6 +88,10 @@ main (int argc, char *argv[])
 
     argv += optind;
     argc -= optind;
+
+    if (daemonize)
+	if (daemon (0, 0) < 0)
+	    err (EXIT_FAILURE, "daemon");
 
     notifier = usbnotifier_new ();
     usbnotifier_set_color (notifier, COLOR_NONE);
