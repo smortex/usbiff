@@ -7,5 +7,6 @@ int		 mbox_get_color (struct mbox *);
 void		 mbox_set_color (struct mbox *, int);
 int		 mbox_check (struct mbox *);
 int		 mbox_has_new_mail (struct mbox *);
+void		 mbox_free (struct mbox *);
 
 #endif

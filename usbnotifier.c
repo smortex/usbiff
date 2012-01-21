@@ -32,6 +32,7 @@
 #include "usbnotifier.h"
 
 static int current_color = -1;
+static libusb_context *ctx;
 
 struct usbnotifier {
     libusb_device_handle *handle;
@@ -43,7 +44,6 @@ usbnotifier_new (void)
     struct usbnotifier *res = NULL;
 
     if ((res = malloc (sizeof (*res)))) {
-	libusb_context *ctx;
 	if (0 != libusb_init (&ctx))
 	    goto error;
 
@@ -122,4 +122,12 @@ usbnotifier_flash_to (struct usbnotifier *notifier, uint8_t color)
     usbnotifier_set_color (notifier, color);
 
     return 0;
+}
+
+void
+usbnotifier_free (struct usbnotifier *notifier)
+{
+    libusb_close (notifier->handle);
+    libusb_exit (ctx);
+    free (notifier);
 }

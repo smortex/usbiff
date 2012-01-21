@@ -29,6 +29,7 @@
 #include <sys/event.h>
 
 #include <err.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +67,7 @@ main (int argc, char *argv[])
     struct mbox **mboxes;
     struct usbnotifier *notifier;
     int mbox_count = 0;
+    int quit = 0;
 
     int ch;
     while ((ch = getopt (argc, argv, "v")) != -1) {
@@ -123,18 +125,46 @@ main (int argc, char *argv[])
 
     struct kevent ke;
 
-    for (;;) {
+    struct sigaction sa;
+    memset (&sa, '\0', sizeof (sa));
+    sa.sa_handler = SIG_IGN;
+    if (sigaction (SIGINT, &sa, NULL) < 0)
+	err (EXIT_FAILURE, "sigaction");
+
+    EV_SET (&ke, SIGINT, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
+	err (EXIT_FAILURE, "kevent");
+
+    while (!quit) {
 	int i = kevent (kq, NULL, 0, &ke, 1, NULL);
 	if (i < 0)
 	    err (EXIT_FAILURE, "kevent");
 
-	struct mbox *mbox = (struct mbox *) ke.udata;
+	switch (ke.filter) {
+	case EVFILT_SIGNAL:
+	    if (SIGINT == ke.ident)
+		quit = 1;
+	    break;
+	case EVFILT_VNODE:
+	    {
+		struct mbox *mbox = (struct mbox *) ke.udata;
 
-	mbox_register (mbox, kq);
-	mbox_check (mbox);
+		mbox_register (mbox, kq);
+		mbox_check (mbox);
 
-	update_status (notifier, mboxes, mbox_count);
+		update_status (notifier, mboxes, mbox_count);
+	    }
+	    break;
+	}
     }
+
+    usbnotifier_set_color (notifier, COLOR_NONE);
+    usbnotifier_free (notifier);
+
+    for (int i = 0; i < mbox_count; i++) {
+	mbox_free (mboxes[i]);
+    }
+    free (mboxes);
 
     exit(EXIT_SUCCESS);
 }

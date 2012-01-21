@@ -116,3 +116,10 @@ mbox_has_new_mail (struct mbox *mbox)
 {
     return mbox->has_new_mail;
 }
+
+void
+mbox_free (struct mbox *mbox)
+{
+    free (mbox->filename);
+    free (mbox);
+}
