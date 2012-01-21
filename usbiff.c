@@ -143,6 +143,13 @@ main (int argc, char *argv[])
     if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
 	err (EXIT_FAILURE, "kevent");
 
+    if (sigaction (SIGTERM, &sa, NULL) < 0)
+	err (EXIT_FAILURE, "sigaction");
+
+    EV_SET (&ke, SIGTERM, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
+	err (EXIT_FAILURE, "kevent");
+
     while (!quit) {
 	int i = kevent (kq, NULL, 0, &ke, 1, NULL);
 	if (i < 0)
@@ -150,8 +157,12 @@ main (int argc, char *argv[])
 
 	switch (ke.filter) {
 	case EVFILT_SIGNAL:
-	    if (SIGINT == ke.ident)
+	    switch (ke.ident) {
+	    case SIGINT:
+	    case SIGTERM:
 		quit = 1;
+		break;
+	    }
 	    break;
 	case EVFILT_VNODE:
 	    {
