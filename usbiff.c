@@ -64,6 +64,23 @@ usage (void)
     fprintf (stderr, "  -v    Increase verbosity (implies -f)\n");
 }
 
+static void
+register_signal (int sig, int kq)
+{
+    struct kevent ke;
+
+    struct sigaction sa;
+    memset (&sa, '\0', sizeof (sa));
+    sa.sa_handler = SIG_IGN;
+
+    if (sigaction (sig, &sa, NULL) < 0)
+	err (EXIT_FAILURE, "sigaction");
+
+    EV_SET (&ke, sig, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
+	err (EXIT_FAILURE, "kevent");
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -133,26 +150,11 @@ main (int argc, char *argv[])
 
     update_status (notifier, mboxes, mbox_count);
 
-    struct kevent ke;
-
-    struct sigaction sa;
-    memset (&sa, '\0', sizeof (sa));
-    sa.sa_handler = SIG_IGN;
-    if (sigaction (SIGINT, &sa, NULL) < 0)
-	err (EXIT_FAILURE, "sigaction");
-
-    EV_SET (&ke, SIGINT, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
-    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
-	err (EXIT_FAILURE, "kevent");
-
-    if (sigaction (SIGTERM, &sa, NULL) < 0)
-	err (EXIT_FAILURE, "sigaction");
-
-    EV_SET (&ke, SIGTERM, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
-    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
-	err (EXIT_FAILURE, "kevent");
+    register_signal (SIGINT, kq);
+    register_signal (SIGTERM, kq);
 
     while (!quit) {
+	struct kevent ke;
 	int i = kevent (kq, NULL, 0, &ke, 1, NULL);
 	if (i < 0)
 	    err (EXIT_FAILURE, "kevent");
