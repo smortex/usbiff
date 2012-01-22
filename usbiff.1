@@ -1,0 +1,68 @@
+.Dd January 22, 2012
+.Dt USBIFF 1
+.Os
+.Sh NAME
+.Nm usbiff
+.Nd general-purpose notification daemon
+.Sh SYNOPSIS
+.Nm
+.Op Fl fv
+.Op Ar filename ...
+.Sh DESCRIPTION
+The
+.Nm
+utility displays notifications using a USB Webmail (sic) Notifier device when new mail arrive in
+.Ar filename
+or when the process is siganled using
+.Dv SIGUSR1 .
+.Pp
+If no
+.Ar filename
+is provided,
+.Nm
+will look for the user's mailbox on the system: if a
+.Ev MAIL
+environment variable is defined, the pathname will be used as the user's mailbox location, otherwise the pathname is constructed as
+.Ar /var/mail/
+followed by the value of the
+.Ev USER
+environment variable.
+.Pp
+The options are as follows:
+.Bl -tag -width -f
+.It Fl f
+Run in the foreground.  By default,
+.Nm
+forks and detach from the controlling terminal.
+.It Fl v
+Increase verbosity. Implies
+.Fl f .
+.El
+.\" The following commands should be uncommented and
+.\" used where appropriate.
+.\" .Sh IMPLEMENTATION NOTES
+.\" This next command is for sections 1, 6, 7 and 8 only.
+.Sh ENVIRONMENT
+.Bl -tag -width ".Ev MAIL"
+.It Ev MAIL
+Location of the user's mailbox.
+.It Ev USER
+Login name of the user executing
+.Nm .
+.El
+.\" .Sh FILES
+.\" .Sh EXAMPLES
+.\" This next command is for sections 1, 6, 7, 8 and 9 only
+.\"     (command return values (to shell) and
+.\"     fprintf/stderr type diagnostics).
+.\" .Sh DIAGNOSTICS
+.\" .Sh ERRORS
+.Sh SEE ALSO
+.Xr fork 2 ,
+.Xr kill 1 ,
+.Xr signal 3 .
+.\" .Sh STANDARDS
+.\" .Sh HISTORY
+.Sh AUTHORS
+.An Romain Tartière Aq romain@blogreen.org
+.\" .Sh BUGS
