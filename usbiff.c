@@ -113,6 +113,9 @@ main (int argc, char *argv[])
 	    err (EXIT_FAILURE, "daemon");
 
     notifier = usbnotifier_new ();
+    if (!notifier)
+	errx (EXIT_FAILURE, "usbnotifier_new");
+
     usbnotifier_set_color (notifier, COLOR_NONE);
 
     if (argc == 0) {
