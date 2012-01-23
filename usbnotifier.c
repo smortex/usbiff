@@ -78,7 +78,7 @@ usbnotifier_set_color (struct usbnotifier *notifier, uint8_t color)
 }
 
 int
-usbnotifier_flash (struct usbnotifier *notifier, uint8_t color)
+usbnotifier_flash (struct usbnotifier *notifier, uint8_t color, struct config *config)
 {
     if (current_color == color)
 	return 0;
@@ -86,11 +86,11 @@ usbnotifier_flash (struct usbnotifier *notifier, uint8_t color)
     int original_color = current_color;
 
     struct timespec ts = {
-	.tv_sec  = 1,
-	.tv_nsec = 500000000,
+	.tv_sec  = config->flash_delay.long_delay / 1000,
+	.tv_nsec = (config->flash_delay.long_delay % 1000) * 1000000,
     };
 
-    usbnotifier_flash_to (notifier, color);
+    usbnotifier_flash_to (notifier, color, config);
     nanosleep (&ts, 0);
     usbnotifier_set_color (notifier, original_color);
 
@@ -98,7 +98,7 @@ usbnotifier_flash (struct usbnotifier *notifier, uint8_t color)
 }
 
 int
-usbnotifier_flash_to (struct usbnotifier *notifier, uint8_t color)
+usbnotifier_flash_to (struct usbnotifier *notifier, uint8_t color, struct config *config)
 {
     if (current_color == color)
 	return 0;
@@ -106,8 +106,8 @@ usbnotifier_flash_to (struct usbnotifier *notifier, uint8_t color)
     int original_color = current_color;
 
     struct timespec ts = {
-	.tv_sec  = 0,
-	.tv_nsec = 250000000,
+	.tv_sec  = config->flash_delay.short_delay / 1000,
+	.tv_nsec = (config->flash_delay.short_delay % 1000) * 1000000,
     };
 
     usbnotifier_set_color (notifier, color);

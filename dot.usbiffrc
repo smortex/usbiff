@@ -1,0 +1,34 @@
+# Flash delay
+# The first number is the duration of the 2 first flashes in mili-seconds and
+# the delay between flashes.  The second argument is the duration of the third
+# and last flash in mili-seconds.
+# Default: 250 1500
+flash-delay 125 500
+
+# Mailboxes
+# A list of pathnames to mbox files to monitor
+# Default: empty
+mailboxes /var/mail/romain `find /home/romain/Mail/ -type f -name 'IN.*' ! -name '*Spam*'`
+
+# Color
+# Default color of the notification device when the user's attnetion is required
+# Default: blue
+set color = blue
+
+# Flash
+# Define if the notification device should flash
+# Default: no
+set flash = no
+
+# Default notification priority.
+# A lower value indicates a higher priority.  Priorities must be in the -20..20
+# range.
+# Default: 10
+set priority = 10
+
+# Per mbox settings.
+# My INBOX has highest priority
+mbox-hook /var/mail/romain set color = red flash = yes priority = -10
+
+signal-hook SIGUSR1 set color = yellow
+signal-hook SIGUSR2 set ignore

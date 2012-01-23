@@ -35,23 +35,38 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "mbox.h"
+#include "signal.h"
 #include "usbnotifier.h"
 
 #include "common.h"
 
 int verbose = 0;
+char *config_filename = NULL;
 
 static void
-update_status (struct usbnotifier *notifier, struct mbox **mboxes, int mbox_count)
+update_status (struct usbnotifier *notifier, struct config *config)
 {
-    int color = 0;
-    for (int i = mbox_count -1; i >= 0; i--) {
-	if (mbox_has_new_mail (mboxes[i]))
-	    color = mbox_get_color (mboxes[i]);
+    int priority = PRIORITY_UNDEFINED;
+    int color = COLOR_NONE;
+    int flash = 0;
+
+    struct mbox *mbox = config->mailboxes;
+
+    while (mbox) {
+	if (!mbox->ignore && mbox_has_new_mail (mbox) && mbox->priority < priority) {
+	    priority = mbox->priority;
+	    color = mbox->color;
+	    flash = mbox->flash;
+	}
+	mbox = mbox->next;
     }
 
-    usbnotifier_flash_to (notifier, color);
+    if (flash)
+	usbnotifier_flash_to (notifier, color, config);
+    else
+	usbnotifier_set_color (notifier, color);
 }
 
 static void
@@ -60,41 +75,33 @@ usage (void)
     fprintf (stderr, "usage: usbiff [options]+ [filename]+\n");
     fprintf (stderr, "\n");
     fprintf (stderr, "Options:\n");
-    fprintf (stderr, "  -f    Do not fork and detach from the shell\n");
-    fprintf (stderr, "  -v    Increase verbosity (implies -f)\n");
-}
-
-static void
-register_signal (int sig, int kq)
-{
-    struct kevent ke;
-
-    struct sigaction sa;
-    memset (&sa, '\0', sizeof (sa));
-    sa.sa_handler = SIG_IGN;
-
-    if (sigaction (sig, &sa, NULL) < 0)
-	err (EXIT_FAILURE, "sigaction");
-
-    EV_SET (&ke, sig, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
-    if (kevent (kq, &ke, 1, NULL, 0, NULL) < 0)
-	err (EXIT_FAILURE, "kevent");
+    fprintf (stderr, "  -c <file>   Specify a configuration file\n");
+    fprintf (stderr, "  -f          Do not fork and detach from the shell\n");
+    fprintf (stderr, "  -v          Increase verbosity (implies -f)\n");
 }
 
 int
 main (int argc, char *argv[])
 {
-    struct mbox **mboxes;
     struct usbnotifier *notifier;
-    int mbox_count = 0;
     int daemonize  = 1;
     int quit = 0;
+    struct config *config;
+    int config_filename_provided = 0;
+
+    asprintf (&config_filename, "%s/.usbiffrc", getenv ("HOME"));
 
     int ch;
-    while ((ch = getopt (argc, argv, "fv")) != -1) {
+    while ((ch = getopt (argc, argv, "c:fv")) != -1) {
 	switch (ch) {
+	case 'c':
+	    free (config_filename);
+	    config_filename = strdup (optarg);
+	    config_filename_provided = 1;
+	    break;
 	case 'v':
 	    ++verbose;
+	    /* FALLTHROUGH */
 	case 'f':
 	    daemonize = 0;
 	    break;
@@ -108,6 +115,31 @@ main (int argc, char *argv[])
     argv += optind;
     argc -= optind;
 
+    config = config_new ();
+
+    if (config_filename) {
+	if (strcmp (config_filename, "-")) {
+	    yyin = fopen (config_filename, "r");
+	    if (!yyin) {
+		if (!config_filename_provided)
+		    goto no_configuration_file;
+		err (EXIT_FAILURE, "Cannot read configuration file \"%s\"", config_filename);
+	    }
+	} else
+	    config_filename = NULL;
+	int res = yyparse ();
+	yyfree ();
+	if (res != 0)
+	    errx (EXIT_FAILURE, "Cannot parse configuration file");
+    }
+
+
+no_configuration_file:
+    yyconfigure (config);
+    parsed_conf_free (prg);
+
+    free (config_filename);
+
     if (daemonize)
 	if (daemon (0, 0) < 0)
 	    err (EXIT_FAILURE, "daemon");
@@ -118,10 +150,7 @@ main (int argc, char *argv[])
 
     usbnotifier_set_color (notifier, COLOR_NONE);
 
-    if (argc == 0) {
-	mbox_count = 1;
-	mboxes = malloc (sizeof (*mboxes));
-
+    if (!config->mailboxes) {
 	char *mbox = getenv ("MAIL");
 	if (!mbox || (0 == strlen (mbox))) {
 	    char *user = getenv ("USER");
@@ -131,31 +160,20 @@ main (int argc, char *argv[])
 	if (!mbox)
 	    err (EXIT_FAILURE, "No mbox provided");
 
-	mboxes[0] = mbox_new (mbox);
-
+	config_add_mbox (config, mbox);
     } else {
-	mbox_count = argc;
-	mboxes = malloc (mbox_count * sizeof (*mboxes));
-
-	for (int i = 0; i < mbox_count; i++) {
-	    mboxes[i] = mbox_new (argv[i]);
-	    mbox_set_color (mboxes[i], COLOR_BLUE);
+	for (int i = 0; i < argc; i++) {
+	    config_add_mbox (config, argv[i]);
 	}
     }
-    mbox_set_color (mboxes[0], COLOR_RED);
 
     int kq = kqueue ();
     if (kq < 0)
 	err (EXIT_FAILURE, "kqueue");
 
-    for (int i = 0; i < mbox_count; i++)
-	mbox_register (mboxes[i], kq);
+    config_register (config, kq);
 
-    update_status (notifier, mboxes, mbox_count);
-
-    register_signal (SIGINT, kq);
-    register_signal (SIGTERM, kq);
-    register_signal (SIGUSR1, kq);
+    update_status (notifier, config);
 
     while (!quit) {
 	struct kevent ke;
@@ -165,14 +183,17 @@ main (int argc, char *argv[])
 
 	switch (ke.filter) {
 	case EVFILT_SIGNAL:
-	    switch (ke.ident) {
-	    case SIGINT:
-	    case SIGTERM:
-		quit = 1;
-		break;
-	    case SIGUSR1:
-		usbnotifier_flash (notifier, COLOR_YELLOW);
-		break;
+	    {
+		struct signal *signal = (struct signal *) ke.udata;
+		switch (ke.ident) {
+		case SIGINT:
+		case SIGTERM:
+		    quit = 1;
+		    break;
+		case SIGUSR1:
+		    usbnotifier_flash (notifier, signal->color, config);
+		    break;
+		}
 	    }
 	    break;
 	case EVFILT_VNODE:
@@ -182,7 +203,7 @@ main (int argc, char *argv[])
 		mbox_register (mbox, kq);
 		mbox_check (mbox);
 
-		update_status (notifier, mboxes, mbox_count);
+		update_status (notifier, config);
 	    }
 	    break;
 	}
@@ -190,11 +211,7 @@ main (int argc, char *argv[])
 
     usbnotifier_set_color (notifier, COLOR_NONE);
     usbnotifier_free (notifier);
-
-    for (int i = 0; i < mbox_count; i++) {
-	mbox_free (mboxes[i]);
-    }
-    free (mboxes);
+    config_free (config);
 
     exit(EXIT_SUCCESS);
 }

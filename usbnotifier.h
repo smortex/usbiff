@@ -1,6 +1,10 @@
 #ifndef _USBNOTIFIER_H
 #define _USBNOTIFIER_H
 
+#include <sys/types.h>
+
+#include "config.h"
+
 #define COLOR_NONE	0
 #define COLOR_BLUE	1
 #define COLOR_RED	2
@@ -12,8 +16,8 @@
 
 struct usbnotifier *usbnotifier_new (void);
 int		 usbnotifier_set_color (struct usbnotifier *, uint8_t);
-int		 usbnotifier_flash (struct usbnotifier *, uint8_t);
-int		 usbnotifier_flash_to (struct usbnotifier *, uint8_t);
+int		 usbnotifier_flash (struct usbnotifier *, uint8_t, struct config *);
+int		 usbnotifier_flash_to (struct usbnotifier *, uint8_t, struct config *);
 void		 usbnotifier_free (struct usbnotifier *);
 
 #endif /* !_USBNOTIFIER_H */

@@ -27,6 +27,21 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include <stdio.h>
+
+#include "config.h"
+
+#define PRIORITY_UNDEFINED 42
+
 extern int verbose;
+extern char *config_filename;
+
+extern FILE *yyin;
+extern int yyparse (void);
+extern struct parsed_conf *prg;
+
+void		 yyconfigure (struct config *);
+void		 yyfree (void);
+void		 parsed_conf_free (struct parsed_conf *);
 
 #endif /* !_COMMON_H */
