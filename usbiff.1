@@ -1,4 +1,4 @@
-.Dd January 22, 2012
+.Dd January 23, 2012
 .Dt USBIFF 1
 .Os
 .Sh NAME
@@ -6,19 +6,22 @@
 .Nd general-purpose notification daemon
 .Sh SYNOPSIS
 .Nm
+.Op Fl c Ar config
 .Op Fl fv
-.Op Ar filename ...
+.Op Ar
 .Sh DESCRIPTION
 The
 .Nm
 utility displays notifications using a USB Webmail (sic) Notifier device when new mail arrive in
 .Ar filename
 or when the process is siganled using
-.Dv SIGUSR1 .
+.Dv SIGUSR1
+or
+.Dv SIGUSR2 .
 .Pp
 If no
-.Ar filename
-is provided,
+.Ar file
+is provided and no configuration file is found,
 .Nm
 will look for the user's mailbox on the system: if a
 .Ev MAIL
@@ -29,7 +32,11 @@ followed by the value of the
 environment variable.
 .Pp
 The options are as follows:
-.Bl -tag -width -f
+.Bl -tag -width ".Fl -c Ar config"
+.It Fl c Ar config
+Read configuration from the
+.Ar config
+file.
 .It Fl f
 Run in the foreground.  By default,
 .Nm
@@ -50,7 +57,13 @@ Location of the user's mailbox.
 Login name of the user executing
 .Nm .
 .El
-.\" .Sh FILES
+.Sh FILES
+.Bl -tag -width "~/.usbiffrc"
+.It ~/.usbiffrc
+Default location of
+.Nm
+configuration file.
+.El
 .\" .Sh EXAMPLES
 .\" This next command is for sections 1, 6, 7, 8 and 9 only
 .\"     (command return values (to shell) and
@@ -60,7 +73,8 @@ Login name of the user executing
 .Sh SEE ALSO
 .Xr fork 2 ,
 .Xr kill 1 ,
-.Xr signal 3 .
+.Xr signal 3 ,
+.Xr usbiffrc 5 .
 .\" .Sh STANDARDS
 .\" .Sh HISTORY
 .Sh AUTHORS

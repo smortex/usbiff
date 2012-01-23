@@ -1,0 +1,159 @@
+.\" The following commands are required for all man pages.
+.Dd January 23, 2012
+.Dt USBIFFRC 5
+.Os
+.Sh NAME
+.Nm usbiffrc
+.Nd format of the
+.Xr usbiff 1
+configuration file
+.Sh DESCRIPTION
+An
+.Nm usbiff
+configuration file consists of a serie of
+.Dq commands .
+.Pp
+The hash mark, or pound sign
+.Pq Dq # ,
+is used as a comment character. You can use it to
+annotate your initialization file. All text after the comment character to the
+end of the line is ignored.
+.Sh COMMANDS
+.Bl -tag -compact -width "foo"
+.It Cd flash-delay Ar short_delay Ar long_delay
+.Pp
+This command is used to change the timings of flash events.  The display flashes twice for
+.Ar short_delay
+ms and then one time for
+.Ar long_delay
+ms.
+Between flashes, the devices stays idle for
+.Ar short_delay
+ms.
+.Pp
+.It Cd mailboxes Ar
+.Pp
+This command is used to provide a list of pathname to mbox files to check.
+.Pp
+.It Cd mbox-hook Ar file Cd set Oo Cd no Oc Ns Ar variable Ns Oo = Ns Ar value Oc Ar ...
+.Pp
+This command is used to set and manipulate mbox-specific configuration variables.
+.Pp
+.It Cd set Oo Cd no Oc Ns Ar variable Ns Oo = Ns Ar value Oc Ar ...
+.It Cd unset Ar variable Ar ...
+.Pp
+These commands are used to set and manipulate configuration-wide variables.
+.Pp
+The following commands are equivalent:
+.Bl -bullet -compact -offset indent
+.It
+ unset ignore
+.It
+ set ignore=0
+.It
+ set noignore
+.El
+.Pp
+.It Cd signal-hook Ar signal Cd set  Oo Cd no Oc Ns Ar variable Ns Oo = Ns Ar value Oc Ar ...
+.Pp
+This command is used to set and manipulate signal-specific configuration variables.
+.El
+.Sh CONFIGURATION VARIABLES
+.Bl -ohang
+.It Ar color
+.Bd -literal -compact
+Type: color
+Default: blue
+.Ed
+.Pp
+Color for notifications.  One of:
+.Bl -bullet -compact -offset indent
+.It
+blue
+.It
+cyan
+.It
+green
+.It
+magenta
+.It
+red
+.It
+white
+.It
+yellow
+.It
+none
+.El
+.It Ar flash
+.Bd -literal -compact
+Type: boolean
+Default: no
+.Ed
+.Pp
+If set to
+.Ar yes
+the device will blink to the configured color when a notification occurs.  When set to
+.Ar no
+the device just switch to the notification color.
+.It Ar ignore
+.Bd -literal -compact
+Type: boolean
+Default: no
+.Ed
+.Pp
+If set to
+.Ar yes
+the device will not raise any notification on event.  When set to
+.Ar no
+notifications will change the device color.
+.It Ar priority
+.Bd -literal -compact
+Type: number
+Default: 10
+.Ed
+.Pp
+Set notifications priority.  The lower a notification priority is, the best precedence it has.  Priorities must be in the -20..20 range, inclusively.
+.El
+.\" .Sh FILES
+.Sh EXAMPLES
+This first example illustrate a simple configuration file:
+.Bd -literal -offset indent
+# Flash quickly
+flash-delay 125 500
+
+# Default notification settings
+set color=green flash
+
+# Only check my inbox
+mailboxes /var/mail/romain
+.Ed
+.Pp
+The following example illustrate a slightly more complex configuration.  Mailboxes are discovered at runtime by
+.Nm usbiff
+and some hooks have been configured to give the inbox a higher precedence and
+ignore the Spam mailbox.  Additionally, SIGUSR1 is configured to trigger a
+notification and SIGUSR2 is ignore:
+.Bd -literal -offset indent
+# Default notification settings
+set color=green
+
+# We can use `` to execute a program and get a list of mailboxes
+mailboxes `find $HOME/Mail -type f` /var/mail/romain
+
+# Mailbox notification settings overrides
+mbox-hook /var/mail/romain set color=red flash=yes priority=-10
+mbox-hook /home/romain/Mail/IN.Spam set ignore
+
+# Signal notification settings overrides
+signal-hook SIGUSR1 set color = yellow
+signal-hook SIGUSR2 set ignore
+.Ed
+.\" .Sh COMPATIBILITY
+.Sh SEE ALSO
+.Xr usbiff 1 .
+.\" .Sh STANDARDS
+.\" .Sh HISTORY
+.Sh AUTHORS
+.An Romain Tartière Aq romain@blogreen.org
+.\" .Sh BUGS

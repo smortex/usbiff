@@ -5,6 +5,9 @@ CC=		clang
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
 LDFLAGS+=	-lusb
 
+MAN1=		usbiff.1
+MAN5=		usbiffrc.5
+
 .if defined(DEBUG)
 CFLAGS+=	-ggdb -O0
 .endif
