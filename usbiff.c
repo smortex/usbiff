@@ -115,30 +115,7 @@ main (int argc, char *argv[])
     argv += optind;
     argc -= optind;
 
-    config = config_new ();
-
-    if (config_filename) {
-	if (strcmp (config_filename, "-")) {
-	    yyin = fopen (config_filename, "r");
-	    if (!yyin) {
-		if (!config_filename_provided)
-		    goto no_configuration_file;
-		err (EXIT_FAILURE, "Cannot read configuration file \"%s\"", config_filename);
-	    }
-	} else
-	    config_filename = NULL;
-	int res = yyparse ();
-	yyfree ();
-	if (res != 0)
-	    errx (EXIT_FAILURE, "Cannot parse configuration file");
-    }
-
-
-no_configuration_file:
-    yyconfigure (config);
-    parsed_conf_free (prg);
-
-    free (config_filename);
+    config = config_load (config_filename, 0);
 
     if (daemonize)
 	if (daemon (0, 0) < 0)
@@ -186,6 +163,17 @@ no_configuration_file:
 	    {
 		struct signal *signal = (struct signal *) ke.udata;
 		switch (ke.ident) {
+		case SIGHUP:
+		    {
+			struct config *new_config = config_load (config_filename, 1);
+			if (new_config) {
+			    config_unregister (config, kq);
+			    config_free (config);
+			    config = new_config;
+			    config_register (config, kq);
+			}
+		    }
+		    break;
 		case SIGINT:
 		case SIGTERM:
 		    quit = 1;
@@ -211,7 +199,9 @@ no_configuration_file:
 
     usbnotifier_set_color (notifier, COLOR_NONE);
     usbnotifier_free (notifier);
+    config_unregister (config, kq);
     config_free (config);
+    free (config_filename);
 
     exit(EXIT_SUCCESS);
 }

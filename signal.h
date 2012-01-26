@@ -10,8 +10,9 @@ struct signal {
     struct signal *next;
 };
 
-struct signal	*signal_new (const struct config *config, int signal);
-int		 signal_register (struct signal *signal, int kq);
+struct signal	*signal_new (const struct config *, int);
+int		 signal_register (struct signal *, int);
+int		 signal_unregister (struct signal *, int);
 void		 signal_free (struct signal *);
 
 #endif /* !_SIGNAL_H */

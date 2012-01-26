@@ -66,8 +66,6 @@ mbox_register (struct mbox *mbox, int kq)
 
     if (mbox->fd) {
 	close (mbox->fd);
-	ke.flags = EV_DELETE;
-	kevent (kq, &ke, 1, NULL, 0, NULL);
     }
 
     mbox->fd = open (mbox->filename, O_RDONLY);
@@ -75,6 +73,18 @@ mbox_register (struct mbox *mbox, int kq)
     EV_SET (&ke, mbox->fd, EVFILT_VNODE, EV_ADD | EV_ONESHOT, NOTE_WRITE, 0, mbox);
 
     return kevent (kq, &ke, 1, NULL, 0, NULL);
+}
+
+int
+mbox_unregister (struct mbox *mbox, int kq)
+{
+    (void) kq;
+
+    int res;
+    if (0 == (res = close (mbox->fd))) {
+	mbox->fd = 0;
+    }
+    return res;
 }
 
 int

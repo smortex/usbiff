@@ -69,6 +69,22 @@ signal_register (struct signal *signal, int kq)
     return kevent (kq, &ke, 1, NULL, 0, NULL);
 }
 
+int
+signal_unregister (struct signal *signal, int kq)
+{
+    struct kevent ke;
+
+    struct sigaction sa;
+    memset (&sa, '\0', sizeof (sa));
+    sa.sa_handler = SIG_DFL;
+
+    if (sigaction (signal->signal, &sa, NULL) < 0)
+	err (EXIT_FAILURE, "sigaction");
+
+    EV_SET (&ke, signal->signal, EVFILT_SIGNAL, EV_DELETE, 0, 0, signal);
+    return kevent (kq, &ke, 1, NULL, 0, NULL);
+}
+
 void
 signal_free (struct signal *signal)
 {

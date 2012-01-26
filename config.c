@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <err.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -50,6 +51,34 @@ config_new (void)
 	res->flash_delay.short_delay = 250;
 	res->flash_delay.long_delay  = 1500;
     }
+
+    return res;
+}
+
+struct config *
+config_load (char *filename, int force)
+{
+    struct config *res = config_new ();
+
+    if (strcmp ("-", filename)) {
+	yyin = fopen (filename, "r");
+	if (!yyin) {
+	    if (force)
+		err (EXIT_FAILURE, "Cannot read configuration file \"%s\"", config_filename);
+	    else
+		goto no_configuration_file;
+	}
+    }
+    if (yyparse () != 0)
+	errx (EXIT_FAILURE, "Cannot parse configuration file");
+
+no_configuration_file:
+    yyconfigure (res);
+    parsed_conf_free (prg);
+    yyfree ();
+
+    if (yyin)
+	fclose (yyin);
 
     return res;
 }
@@ -162,13 +191,38 @@ config_register (struct config *config, int kq)
 }
 
 void
+config_unregister (struct config *config, int kq)
+{
+    struct mbox *mbox = config->mailboxes;
+
+    while (mbox) {
+	if (mbox_unregister (mbox, kq) < 0)
+	    warn ("mbox_unregister");
+	mbox = mbox->next;
+    }
+
+    struct signal *signal = config->signals;
+
+    while (signal) {
+	signal_unregister (signal, kq);
+	signal = signal->next;
+    }
+}
+
+void
 config_free (struct config *config)
 {
-    struct mbox *p = config->mailboxes, *o;
-    while (p) {
-	o = p;
-	p = p->next;
-	free (o);
+    struct mbox *mbox = config->mailboxes, *mbox_o;
+    while (mbox) {
+	mbox_o = mbox;
+	mbox = mbox->next;
+	mbox_free (mbox_o);
+    }
+    struct signal *signal = config->signals, *signal_o;
+    while (signal) {
+	signal_o = signal;
+	signal = signal->next;
+	signal_free (signal_o);
     }
     free (config);
 }

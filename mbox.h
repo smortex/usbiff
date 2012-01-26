@@ -18,6 +18,7 @@ struct mbox {
 
 struct mbox	*mbox_new (const struct config *, const char *);
 int		 mbox_register (struct mbox *, int);
+int		 mbox_unregister (struct mbox *, int);
 int		 mbox_get_color (struct mbox *);
 void		 mbox_set_color (struct mbox *, int);
 int		 mbox_check (struct mbox *);

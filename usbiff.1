@@ -14,7 +14,7 @@ The
 .Nm
 utility displays notifications using a USB Webmail (sic) Notifier device when new mail arrive in
 .Ar filename
-or when the process is siganled using
+or when the process is signaled using
 .Dv SIGUSR1
 or
 .Dv SIGUSR2 .
@@ -36,7 +36,11 @@ The options are as follows:
 .It Fl c Ar config
 Read configuration from the
 .Ar config
-file.
+file.  When
+.Nm
+is signaled using
+.Dv SIGHUP ,
+it will attempt to reload the configuration file.
 .It Fl f
 Run in the foreground.  By default,
 .Nm
