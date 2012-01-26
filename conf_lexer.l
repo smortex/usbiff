@@ -98,7 +98,7 @@ yyerror (char *msg, ...)
     vasprintf (&s, msg, ap);
     va_end (ap);
 
-    printf ("\033[1m%s:%d:%ld: \033[31;1merror:\033[0;1m %s\033[0m\n", (config_filename) ? config_filename : "<stdin>" , lineno, yytext - current_line_pos + 1, s);
+    printf ("\033[1m%s:%d:%ld: \033[31;1merror:\033[0;1m %s\033[0m\n", config_get_filename (), lineno, yytext - current_line_pos + 1, s);
     free (s);
     printf ("%s\n", current_line);
     for (int i = 0; i < yytext - current_line_pos; i++)

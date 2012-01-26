@@ -35,6 +35,26 @@
 
 #include "config.h"
 
+static char *config_filename = NULL;
+static int config_filename_provided = 0;
+
+void
+config_set_filename (char *filename)
+{
+    free (config_filename);
+    config_filename = strdup (filename);
+    config_filename_provided = 1;
+}
+
+const char *
+config_get_filename (void)
+{
+    if (!config_filename)
+	return "<stdin>";
+    else
+	return config_filename;
+}
+
 struct config *
 config_new (void)
 {
@@ -56,14 +76,17 @@ config_new (void)
 }
 
 struct config *
-config_load (char *filename, int force)
+config_load (void)
 {
     struct config *res = config_new ();
 
-    if (strcmp ("-", filename)) {
-	yyin = fopen (filename, "r");
+    if (!config_filename)
+	asprintf (&config_filename, "%s/.usbiffrc", getenv ("HOME"));
+
+    if (strcmp ("-", config_filename)) {
+	yyin = fopen (config_filename, "r");
 	if (!yyin) {
-	    if (force)
+	    if (config_filename_provided)
 		err (EXIT_FAILURE, "Cannot read configuration file \"%s\"", config_filename);
 	    else
 		goto no_configuration_file;
@@ -224,5 +247,7 @@ config_free (struct config *config)
 	signal = signal->next;
 	signal_free (signal_o);
     }
+    free (config_filename);
+    config_filename = NULL;
     free (config);
 }

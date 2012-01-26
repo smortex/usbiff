@@ -34,7 +34,6 @@
 #define PRIORITY_UNDEFINED 42
 
 extern int verbose;
-extern char *config_filename;
 
 extern FILE *yyin;
 extern int yyparse (void);

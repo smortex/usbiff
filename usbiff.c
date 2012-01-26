@@ -43,7 +43,6 @@
 #include "common.h"
 
 int verbose = 0;
-char *config_filename = NULL;
 
 static void
 update_status (struct usbnotifier *notifier, struct config *config)
@@ -87,17 +86,12 @@ main (int argc, char *argv[])
     int daemonize  = 1;
     int quit = 0;
     struct config *config;
-    int config_filename_provided = 0;
-
-    asprintf (&config_filename, "%s/.usbiffrc", getenv ("HOME"));
 
     int ch;
     while ((ch = getopt (argc, argv, "c:fv")) != -1) {
 	switch (ch) {
 	case 'c':
-	    free (config_filename);
-	    config_filename = strdup (optarg);
-	    config_filename_provided = 1;
+	    config_set_filename (optarg);
 	    break;
 	case 'v':
 	    ++verbose;
@@ -115,7 +109,7 @@ main (int argc, char *argv[])
     argv += optind;
     argc -= optind;
 
-    config = config_load (config_filename, 0);
+    config = config_load ();
 
     if (daemonize)
 	if (daemon (0, 0) < 0)
@@ -165,7 +159,7 @@ main (int argc, char *argv[])
 		switch (ke.ident) {
 		case SIGHUP:
 		    {
-			struct config *new_config = config_load (config_filename, 1);
+			struct config *new_config = config_load ();
 			if (new_config) {
 			    config_unregister (config, kq);
 			    config_free (config);
@@ -201,7 +195,6 @@ main (int argc, char *argv[])
     usbnotifier_free (notifier);
     config_unregister (config, kq);
     config_free (config);
-    free (config_filename);
 
     exit(EXIT_SUCCESS);
 }

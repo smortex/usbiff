@@ -16,8 +16,10 @@ struct config {
     } flash_delay;
 };
 
+void		 config_set_filename (char *);
+const char	*config_get_filename (void);
 struct config   *config_new (void);
-struct config	*config_load (char *, int);
+struct config	*config_load (void);
 void		 config_update_flash_delay (struct config *, int, int);
 void		 config_update_default_settings (struct config *, int, int, int, int);
 void		 config_add_mbox (struct config *, char *);
