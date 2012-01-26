@@ -8,6 +8,8 @@ LDFLAGS+=	-lusb
 MAN1=		usbiff.1
 MAN5=		usbiffrc.5
 
+CTAGS=		ctags
+
 .if defined(DEBUG)
 CFLAGS+=	-ggdb -O0
 .endif
