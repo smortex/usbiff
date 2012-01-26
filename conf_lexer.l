@@ -24,6 +24,7 @@ void
 yyfree (void)
 {
     free (current_line);
+    current_line = NULL;
 }
 
 %}
