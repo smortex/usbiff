@@ -186,9 +186,9 @@ main (int argc, char *argv[])
 		case SIGTERM:
 		    quit = 1;
 		    break;
-		case SIGUSR1:
-		    usbnotifier_flash (notifier, signal->color, config);
-		    break;
+		default:
+		    if (!signal->ignore)
+			usbnotifier_flash (notifier, signal->color, config);
 		}
 	    }
 	    break;
