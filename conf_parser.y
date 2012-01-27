@@ -402,6 +402,7 @@ yyconfigure (struct config *config)
     }
 
     config_add_signal (config, SIGHUP);
+    config_add_signal (config, SIGINFO);
     config_add_signal (config, SIGINT);
     config_add_signal (config, SIGTERM);
     config_add_signal (config, SIGUSR1);

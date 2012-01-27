@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "config.h"
@@ -109,6 +110,8 @@ main (int argc, char *argv[])
     argv += optind;
     argc -= optind;
 
+    openlog ("usbiff", LOG_PERROR | LOG_PID, LOG_USER);
+
     config = config_load ();
 
     if (daemonize)
@@ -168,6 +171,17 @@ main (int argc, char *argv[])
 			}
 		    }
 		    break;
+		case SIGINFO:
+		    {
+			struct mbox *mbox = config->mailboxes;
+			while (mbox) {
+			    if (mbox->has_new_mail) {
+				syslog (LOG_INFO, "[%s] has new mail.", mbox->filename);
+			    }
+			    mbox = mbox->next;
+			}
+		    }
+		    break;
 		case SIGINT:
 		case SIGTERM:
 		    quit = 1;
@@ -195,6 +209,8 @@ main (int argc, char *argv[])
     usbnotifier_free (notifier);
     config_unregister (config, kq);
     config_free (config);
+
+    closelog ();
 
     exit(EXIT_SUCCESS);
 }
