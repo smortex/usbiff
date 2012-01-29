@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#include <err.h>
 #include <libusb.h>
 #include <stdlib.h>
 #include <time.h>
+#include <syslog.h>
 
 #include "usbnotifier.h"
 
@@ -69,8 +69,10 @@ usbnotifier_set_color (struct usbnotifier *notifier, uint8_t color)
 
     uint8_t data[] = { color, 0, 0, 0, 0 };
     int n;
-    if (0 != libusb_interrupt_transfer (notifier->handle, 2, data, sizeof (data), &n, 1000))
-	err (EXIT_FAILURE, "libusb_interrupt_transfer");
+    if (0 != libusb_interrupt_transfer (notifier->handle, 2, data, sizeof (data), &n, 1000)) {
+	syslog (LOG_ERR, "libusb_interrupt_transfer");
+	exit (EXIT_FAILURE);
+    }
 
     current_color = color;
 

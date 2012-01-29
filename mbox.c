@@ -28,11 +28,10 @@
 #include <sys/event.h>
 #include <sys/stat.h>
 
-#include <err.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "mbox.h"
@@ -103,17 +102,17 @@ int
 mbox_check (struct mbox *mbox)
 {
     struct stat sb;
-    if (stat (mbox->filename, &sb) < 0)
-	err (EXIT_FAILURE, "Can't stat mbox \"%s\"", mbox->filename);
+    if (stat (mbox->filename, &sb) < 0) {
+	syslog (LOG_ERR, "Can't stat mbox \"%s\"", mbox->filename);
+	exit (EXIT_FAILURE);
+    }
 
 
     if (sb.st_atime < sb.st_mtime) {
-	if (verbose)
-	    printf ("[%s] New mail arrived.\n", mbox->filename);
+	syslog (LOG_DEBUG, "[%s] New mail arrived.\n", mbox->filename);
 	return mbox->has_new_mail = 1;
     } else {
-	if (verbose)
-	    printf ("[%s] Mail has been read.\n", mbox->filename);
+	syslog (LOG_DEBUG, "[%s] Mail has been read.\n", mbox->filename);
 	return mbox->has_new_mail = 0;
     }
 }

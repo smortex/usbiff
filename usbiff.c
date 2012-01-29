@@ -110,7 +110,11 @@ main (int argc, char *argv[])
     argv += optind;
     argc -= optind;
 
-    openlog ("usbiff", LOG_PERROR | LOG_PID, LOG_USER);
+    int log_options = LOG_PID;
+    if (!daemonize)
+	log_options |= LOG_PERROR;
+
+    openlog ("usbiff", log_options, LOG_USER);
 
     config = config_load ();
 
@@ -119,8 +123,10 @@ main (int argc, char *argv[])
 	    err (EXIT_FAILURE, "daemon");
 
     notifier = usbnotifier_new ();
-    if (!notifier)
-	errx (EXIT_FAILURE, "usbnotifier_new");
+    if (!notifier) {
+	syslog (LOG_ERR, "Cannot connect to notification device");
+	exit (EXIT_FAILURE);
+    }
 
     usbnotifier_set_color (notifier, COLOR_NONE);
 
@@ -131,8 +137,10 @@ main (int argc, char *argv[])
 	    asprintf (&mbox, "/var/mail/%s", user);
 	}
 
-	if (!mbox)
-	    err (EXIT_FAILURE, "No mbox provided");
+	if (!mbox) {
+	    syslog (LOG_ERR, "No mbox provided");
+	    exit (EXIT_FAILURE);
+	}
 
 	config_add_mbox (config, mbox);
     } else {
@@ -142,8 +150,10 @@ main (int argc, char *argv[])
     }
 
     int kq = kqueue ();
-    if (kq < 0)
-	err (EXIT_FAILURE, "kqueue");
+    if (kq < 0) {
+	syslog (LOG_ERR, "Error allocating kernel queue: %m");
+	exit (EXIT_FAILURE);
+    }
 
     config_register (config, kq);
 
@@ -152,8 +162,10 @@ main (int argc, char *argv[])
     while (!quit) {
 	struct kevent ke;
 	int i = kevent (kq, NULL, 0, &ke, 1, NULL);
-	if (i < 0)
-	    err (EXIT_FAILURE, "kevent");
+	if (i < 0) {
+	    syslog (LOG_ERR, "Error adding kevent: %m");
+	    exit (EXIT_FAILURE);
+	}
 
 	switch (ke.filter) {
 	case EVFILT_SIGNAL:

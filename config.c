@@ -24,9 +24,9 @@
  * SUCH DAMAGE.
  */
 
-#include <err.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 
 #include "common.h"
 #include "mbox.h"
@@ -86,14 +86,17 @@ config_load (void)
     if (strcmp ("-", config_filename)) {
 	yyin = fopen (config_filename, "r");
 	if (!yyin) {
-	    if (config_filename_provided)
-		err (EXIT_FAILURE, "Cannot read configuration file \"%s\"", config_filename);
-	    else
+	    if (config_filename_provided) {
+		syslog (LOG_ERR, "Cannot read configuration file \"%s\"", config_filename);
+		exit (EXIT_FAILURE);
+	    } else
 		goto no_configuration_file;
 	}
     }
-    if (yyparse () != 0)
-	errx (EXIT_FAILURE, "Cannot parse configuration file");
+    if (yyparse () != 0) {
+	syslog (LOG_ERR, "Cannot parse configuration file");
+	exit (EXIT_FAILURE);
+    }
 
 no_configuration_file:
     yyconfigure (res);
@@ -220,7 +223,7 @@ config_unregister (struct config *config, int kq)
 
     while (mbox) {
 	if (mbox_unregister (mbox, kq) < 0)
-	    warn ("mbox_unregister");
+	    syslog (LOG_WARNING, "Cannot unregister mailbox");
 	mbox = mbox->next;
     }
 

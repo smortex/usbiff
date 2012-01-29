@@ -1,9 +1,9 @@
 %{
-#include <err.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <syslog.h>
 
 #include "common.h"
 
@@ -199,7 +199,8 @@ parsed_mbox_new_with_command (char *cmd)
 	}
 	pclose (f);
     } else {
-	errx (EXIT_FAILURE, "Error running \"%s\".", cmd);
+	syslog (LOG_ERR, "Error running \"%s\".", cmd);
+	exit (EXIT_FAILURE);
     }
 
     free (cmd);

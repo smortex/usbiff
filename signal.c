@@ -28,10 +28,10 @@
 
 #include <sys/event.h>
 
-#include <err.h>
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 
 #include "signal.h"
 
@@ -59,8 +59,10 @@ signal_register (struct signal *signal, int kq)
     memset (&sa, '\0', sizeof (sa));
     sa.sa_handler = SIG_IGN;
 
-    if (sigaction (signal->signal, &sa, NULL) < 0)
-	err (EXIT_FAILURE, "sigaction");
+    if (sigaction (signal->signal, &sa, NULL) < 0) {
+	syslog (LOG_ERR, "sigaction");
+	exit (EXIT_FAILURE);
+    }
 
     if (signal->ignore)
 	return 0;
@@ -78,8 +80,10 @@ signal_unregister (struct signal *signal, int kq)
     memset (&sa, '\0', sizeof (sa));
     sa.sa_handler = SIG_DFL;
 
-    if (sigaction (signal->signal, &sa, NULL) < 0)
-	err (EXIT_FAILURE, "sigaction");
+    if (sigaction (signal->signal, &sa, NULL) < 0) {
+	syslog (LOG_ERR, "sigaction");
+	exit (EXIT_FAILURE);
+    }
 
     EV_SET (&ke, signal->signal, EVFILT_SIGNAL, EV_DELETE, 0, 0, signal);
     return kevent (kq, &ke, 1, NULL, 0, NULL);
