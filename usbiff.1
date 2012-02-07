@@ -1,4 +1,4 @@
-.Dd January 23, 2012
+.Dd January 29, 2012
 .Dt USBIFF 1
 .Os
 .Sh NAME
@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl c Ar config
-.Op Fl fv
+.Op Fl fnv
 .Op Ar
 .Sh DESCRIPTION
 The
@@ -45,6 +45,8 @@ it will attempt to reload the configuration file.
 Run in the foreground.  By default,
 .Nm
 forks and detach from the controlling terminal.
+.It Fl n
+Do not read the configuration file.
 .It Fl v
 Increase verbosity. Implies
 .Fl f .

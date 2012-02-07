@@ -77,6 +77,7 @@ usage (void)
     fprintf (stderr, "Options:\n");
     fprintf (stderr, "  -c <file>   Specify a configuration file\n");
     fprintf (stderr, "  -f          Do not fork and detach from the shell\n");
+    fprintf (stderr, "  -n          Do not read the configuration file\n");
     fprintf (stderr, "  -v          Increase verbosity (implies -f)\n");
 }
 
@@ -86,10 +87,11 @@ main (int argc, char *argv[])
     struct usbnotifier *notifier;
     int daemonize  = 1;
     int quit = 0;
+    int ignore_config = 0;
     struct config *config;
 
     int ch;
-    while ((ch = getopt (argc, argv, "c:fv")) != -1) {
+    while ((ch = getopt (argc, argv, "c:fnv")) != -1) {
 	switch (ch) {
 	case 'c':
 	    config_set_filename (optarg);
@@ -99,6 +101,9 @@ main (int argc, char *argv[])
 	    /* FALLTHROUGH */
 	case 'f':
 	    daemonize = 0;
+	    break;
+	case 'n':
+	    ignore_config = 1;
 	    break;
 	case '?':
 	    usage ();
@@ -116,7 +121,10 @@ main (int argc, char *argv[])
 
     openlog ("usbiff", log_options, LOG_USER);
 
-    config = config_load ();
+    if (ignore_config)
+	config = config_new ();
+    else
+	config = config_load ();
 
     if (daemonize)
 	if (daemon (0, 0) < 0)
@@ -174,6 +182,9 @@ main (int argc, char *argv[])
 		switch (ke.ident) {
 		case SIGHUP:
 		    {
+			if (ignore_config)
+			    break;
+
 			struct config *new_config = config_load ();
 			if (new_config) {
 			    config_unregister (config, kq);
