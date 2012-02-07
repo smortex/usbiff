@@ -69,7 +69,7 @@ mbox_register (struct mbox *mbox, int kq)
 
     mbox->fd = open (mbox->filename, O_RDONLY);
 
-    EV_SET (&ke, mbox->fd, EVFILT_VNODE, EV_ADD | EV_ONESHOT, NOTE_WRITE, 0, mbox);
+    EV_SET (&ke, mbox->fd, EVFILT_VNODE, EV_ADD | EV_ONESHOT, NOTE_ATTRIB | NOTE_EXTEND | NOTE_WRITE, 0, mbox);
 
     return kevent (kq, &ke, 1, NULL, 0, NULL);
 }
