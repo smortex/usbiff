@@ -1,14 +1,16 @@
 %{
+#include <sys/signal.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
 #include <syslog.h>
 
-#include "common.h"
-
-#include "config.h"
+#include "usbiff_config.h"
 #include "usbnotifier.h"
+
+#include "usbiff_common.h"
 
 extern int yylex (void);
 extern int yyerror (char *, ...);

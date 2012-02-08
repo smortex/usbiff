@@ -34,10 +34,10 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "mbox.h"
+#include "usbiff_mbox.h"
 #include "usbnotifier.h"
 
-#include "common.h"
+#include "usbiff_common.h"
 
 struct mbox *
 mbox_new (const struct config *config, const char *filename)

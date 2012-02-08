@@ -28,12 +28,12 @@
 #include <stdlib.h>
 #include <syslog.h>
 
-#include "common.h"
-#include "mbox.h"
-#include "signal.h"
+#include "usbiff_config.h"
+#include "usbiff_mbox.h"
+#include "usbiff_signal.h"
 #include "usbnotifier.h"
 
-#include "config.h"
+#include "usbiff_common.h"
 
 static char *config_filename = NULL;
 static int config_filename_provided = 0;

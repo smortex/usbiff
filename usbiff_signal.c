@@ -24,23 +24,73 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _COMMON_H
-#define _COMMON_H
+#include <sys/types.h>
 
-#include <stdio.h>
+#include <sys/event.h>
 
-#include "config.h"
+#include <signal.h>
+#include <string.h>
+#include <stdlib.h>
+#include <syslog.h>
 
-#define PRIORITY_UNDEFINED 42
+#include "usbiff_signal.h"
 
-extern int verbose;
+struct signal *
+signal_new (const struct config *config, int signal)
+{
+    struct signal *res;
 
-extern FILE *yyin;
-extern int yyparse (void);
-extern struct parsed_conf *prg;
+    if ((res = malloc (sizeof (*res)))) {
+	res->signal = signal;
+	res->color  = config->default_settings.color;
+	res->ignore = config->default_settings.ignore;
+	res->next   = NULL;
+    }
 
-void		 yyconfigure (struct config *);
-void		 yyfree (void);
-void		 parsed_conf_free (struct parsed_conf *);
+    return res;
+}
 
-#endif /* !_COMMON_H */
+int
+signal_register (struct signal *signal, int kq)
+{
+    struct kevent ke;
+
+    struct sigaction sa;
+    memset (&sa, '\0', sizeof (sa));
+    sa.sa_handler = SIG_IGN;
+
+    if (sigaction (signal->signal, &sa, NULL) < 0) {
+	syslog (LOG_ERR, "sigaction");
+	exit (EXIT_FAILURE);
+    }
+
+    if (signal->ignore)
+	return 0;
+
+    EV_SET (&ke, signal->signal, EVFILT_SIGNAL, EV_ADD, 0, 0, signal);
+    return kevent (kq, &ke, 1, NULL, 0, NULL);
+}
+
+int
+signal_unregister (struct signal *signal, int kq)
+{
+    struct kevent ke;
+
+    struct sigaction sa;
+    memset (&sa, '\0', sizeof (sa));
+    sa.sa_handler = SIG_DFL;
+
+    if (sigaction (signal->signal, &sa, NULL) < 0) {
+	syslog (LOG_ERR, "sigaction");
+	exit (EXIT_FAILURE);
+    }
+
+    EV_SET (&ke, signal->signal, EVFILT_SIGNAL, EV_DELETE, 0, 0, signal);
+    return kevent (kq, &ke, 1, NULL, 0, NULL);
+}
+
+void
+signal_free (struct signal *signal)
+{
+    free (signal);
+}

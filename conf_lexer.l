@@ -3,8 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "common.h"
 #include "conf_parser.h"
+
+#include "usbiff_common.h"
 
 int lineno = 1;
 int yyerror (char *, ...);

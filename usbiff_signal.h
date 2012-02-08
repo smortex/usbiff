@@ -1,7 +1,7 @@
-#ifndef _SIGNAL_H
-#define _SIGNAL_H
+#ifndef _USBIFF_SIGNAL_H
+#define _USBIFF_SIGNAL_H
 
-#include "config.h"
+#include "usbiff_config.h"
 
 struct signal {
     int signal;
@@ -15,4 +15,4 @@ int		 signal_register (struct signal *, int);
 int		 signal_unregister (struct signal *, int);
 void		 signal_free (struct signal *);
 
-#endif /* !_SIGNAL_H */
+#endif /* !_USBIFF_SIGNAL_H */

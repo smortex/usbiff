@@ -1,5 +1,5 @@
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _USBIFF_CONFIG_H
+#define _USBIFF_CONFIG_H
 
 struct config {
     struct mbox *mailboxes;
@@ -30,4 +30,4 @@ void		 config_register (struct config *, int);
 void		 config_unregister (struct config *, int);
 void		 config_free (struct config *);
 
-#endif /* !_CONFIG_H */
+#endif /* !_USBIFF_CONFIG_H */

@@ -36,12 +36,12 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "config.h"
-#include "mbox.h"
-#include "signal.h"
+#include "usbiff_config.h"
+#include "usbiff_mbox.h"
+#include "usbiff_signal.h"
 #include "usbnotifier.h"
 
-#include "common.h"
+#include "usbiff_common.h"
 
 int verbose = 0;
 

@@ -1,5 +1,5 @@
 PROG=	usbiff
-SRCS=	config.c conf_lexer.l conf_parser.y mbox.c signal.c usbiff.c usbnotifier.c
+SRCS=	conf_lexer.l conf_parser.y usbiff.c usbiff_config.c usbiff_mbox.c usbiff_signal.c usbnotifier.c
 
 CC=		clang
 CFLAGS+=	-Wall -Wextra -pedantic -Werror

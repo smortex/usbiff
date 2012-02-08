@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-#include "config.h"
+#include "usbiff_config.h"
 
 #define COLOR_NONE	0
 #define COLOR_BLUE	1

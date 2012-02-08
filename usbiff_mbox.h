@@ -1,9 +1,9 @@
-#ifndef _MBOX_H
-#define _MBOX_H
+#ifndef _USBIFF_MBOX_H
+#define _USBIFF_MBOX_H
 
 #include <sys/types.h>
 
-#include "config.h"
+#include "usbiff_config.h"
 
 struct mbox {
     int fd;
@@ -25,4 +25,4 @@ int		 mbox_check (struct mbox *);
 int		 mbox_has_new_mail (struct mbox *);
 void		 mbox_free (struct mbox *);
 
-#endif
+#endif /* !_USBIFF_MBOX_H */
