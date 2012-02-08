@@ -5,6 +5,7 @@ CC=		clang
 CFLAGS+=	-I. -I${.CURDIR}
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
 LDFLAGS+=	-lusb
+YFLAGS+=	-v
 
 MAN=		usbiff.1 usbiffrc.5
 
@@ -13,5 +14,7 @@ CTAGS=		ctags
 .if defined(DEBUG)
 CFLAGS+=	-ggdb -O0
 .endif
+
+CLEANFILES=	conf_parser.output
 
 .include <bsd.prog.mk>
