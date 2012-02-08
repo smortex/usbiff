@@ -6,8 +6,7 @@ CFLAGS+=	-I. -I${.CURDIR}
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
 LDFLAGS+=	-lusb
 
-MAN1=		usbiff.1
-MAN5=		usbiffrc.5
+MAN=		usbiff.1 usbiffrc.5
 
 CTAGS=		ctags
 
