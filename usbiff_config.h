@@ -9,6 +9,7 @@ struct config {
 	int flash;
 	int ignore;
 	int priority;
+	int toggle;
     } default_settings;
     struct {
 	int short_delay;
@@ -21,11 +22,11 @@ const char	*config_get_filename (void);
 struct config   *config_new (void);
 struct config	*config_load (void);
 void		 config_update_flash_delay (struct config *, int, int);
-void		 config_update_default_settings (struct config *, int, int, int, int);
+void		 config_update_default_settings (struct config *, int, int, int, int, int);
 void		 config_add_mbox (struct config *, char *);
 int		 config_update_mbox (struct config *, char *, int, int, int, int);
 void		 config_add_signal (struct config *, int);
-int		 config_update_signal (struct config *, int, int, int);
+int		 config_update_signal (struct config *, int, int, int, int);
 void		 config_register (struct config *, int);
 void		 config_unregister (struct config *, int);
 void		 config_free (struct config *);

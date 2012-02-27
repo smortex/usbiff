@@ -18,7 +18,7 @@ endif
 
 syn keyword usbiffKeyword	flash-delay mailboxes set mbox-hook signal-hook unset
 syn keyword usbiffVariable	color priority
-syn keyword usbiffBoolVariable	flash noflash ignore noignore
+syn keyword usbiffBoolVariable	flash noflash ignore noignore toggle notoggle
 syn keyword usbiffSignal	SIGUSR1 SIGUSR2
 syn keyword usbiffColor		red green blue cyan magenta yellow white none contained
 

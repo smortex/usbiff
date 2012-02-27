@@ -61,6 +61,9 @@ yyfree (void)
 <PARSE>ignore		return IGNORE;
 <PARSE>noignore		return NOIGNORE;
 
+<PARSE>toggle		return TOGGLE;
+<PARSE>notoggle		return NOTOGGLE;
+
 <PARSE>yes		return YES;
 <PARSE>no		return NO;
 

@@ -114,6 +114,16 @@ Default: 10
 .Ed
 .Pp
 Set notifications priority.  The lower a notification priority is, the best precedence it has.  Priorities must be in the -20..20 range, inclusively.
+.It Ar toggle
+.Bd -literal -compact
+Type: boolean
+Default: no
+.Ed
+.Pp
+If set to
+.Ar yes ,
+the notification is kept visible until the event is signaled again. This is
+only valid for signals.
 .El
 .\" .Sh FILES
 .Sh EXAMPLES
@@ -149,8 +159,24 @@ mbox-hook /home/romain/Mail/IN.Spam set ignore
 signal-hook SIGUSR1 set color = yellow
 signal-hook SIGUSR2 set ignore
 .Ed
+.Pp
+With the following configuration for
+.Nm usbiff :
+.Bd -literal -offset indent
+signal-hook SIGUSR2 set color = magenta toggle
+.Ed
+.Pp
+one can easily cook boiled egg with a simple shell script:
+.Bd -literal -offset indent
+#!/bin/sh
+echo "Please wait a bit..."
+sleep $((3*60)); pkill -SIGUSR2 usbiff
+echo "Somewhat ready!"
+sleep $((1*60)); pkill -SIGUSR2 usbiff
+.Ed
 .\" .Sh COMPATIBILITY
 .Sh SEE ALSO
+.Xr pkill 1 ,
 .Xr usbiff 1 .
 .\" .Sh STANDARDS
 .\" .Sh HISTORY

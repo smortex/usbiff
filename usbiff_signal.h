@@ -7,6 +7,8 @@ struct signal {
     int signal;
     int color;
     int ignore;
+    int toggle;
+    int toggle_state;
     struct signal *next;
 };
 

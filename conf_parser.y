@@ -50,6 +50,7 @@ struct parsed_set_statement {
     int flash;
     int ignore;
     int priority;
+    int toggle;
 };
 
 struct parsed_mailbox_hook {
@@ -239,6 +240,7 @@ parsed_set_statement_new (void)
 	res->flash = -1;
 	res->ignore = -1;
 	res->priority = PRIORITY_UNDEFINED;
+	res->toggle = -1;
     }
 
     return res;
@@ -281,6 +283,18 @@ parsed_set_statement_new_with_ignore (int ignore)
 }
 
 struct parsed_set_statement *
+parsed_set_statement_new_with_toggle (int toggle)
+{
+    struct parsed_set_statement *res;
+
+    if ((res = parsed_set_statement_new ())) {
+	res->toggle = toggle;
+    }
+
+    return res;
+}
+
+struct parsed_set_statement *
 parsed_set_statement_new_with_priority (int priority)
 {
     struct parsed_set_statement *res;
@@ -306,6 +320,8 @@ parsed_set_statement_merge (struct parsed_set_statement *left, struct parsed_set
 	left->ignore = right->ignore;
     if (right->priority != PRIORITY_UNDEFINED)
 	left->priority = right->priority;
+    if (right->toggle >= 0)
+	left->toggle = right->toggle;
 
     free (right);
     return left;
@@ -371,7 +387,7 @@ yyconfigure (struct config *config)
 	case PST_GLOBAL:
 	    {
 		struct parsed_set_statement *set_statements = (struct parsed_set_statement *)p->data;
-		config_update_default_settings (config, set_statements->color, set_statements->flash, set_statements->ignore, set_statements->priority);
+		config_update_default_settings (config, set_statements->color, set_statements->flash, set_statements->ignore, set_statements->priority, set_statements->toggle);
 	    }
 	    break;
 	case PST_FLASH_OPTIONS:
@@ -423,7 +439,7 @@ yyconfigure (struct config *config)
 	case PST_SIGNAL_HOOK:
 	    {
 		struct parsed_signal_hook *hook = (struct parsed_signal_hook *)p->data;
-		config_update_signal (config, hook->signal, hook->set_statements->color, hook->set_statements->ignore);
+		config_update_signal (config, hook->signal, hook->set_statements->color, hook->set_statements->ignore, hook->set_statements->toggle);
 	    }
 	default:
 	    break;
@@ -445,7 +461,7 @@ yyconfigure (struct config *config)
 
 %token COMMAND FILENAME NUMBER
 %token FLASH_DELAY MAILBOXES MAILBOX_HOOK SET SIGNAL_HOOK UNSET
-%token COLOR FLASH NOFLASH PRIORITY IGNORE NOIGNORE
+%token COLOR FLASH NOFLASH PRIORITY IGNORE NOIGNORE TOGGLE NOTOGGLE
 %token SIGNAL_USR1 SIGNAL_USR2
 %token YES NO
 %token RED GREEN BLUE CYAN MAGENTA YELLOW WHITE NONE
@@ -495,10 +511,14 @@ set_statement: COLOR '=' color     { $$ = parsed_set_statement_new_with_color ($
 	     | IGNORE              { $$ = parsed_set_statement_new_with_ignore (1); }
 	     | NOIGNORE            { $$ = parsed_set_statement_new_with_ignore (0); }
 	     | IGNORE '=' bool     { $$ = parsed_set_statement_new_with_ignore ($3); }
+	     | TOGGLE              { $$ = parsed_set_statement_new_with_toggle (1); }
+	     | NOTOGGLE            { $$ = parsed_set_statement_new_with_toggle (0); }
+	     | TOGGLE '=' bool     { $$ = parsed_set_statement_new_with_toggle ($3); }
 	     ;
 
 unset_statement: FLASH  { $$ = parsed_set_statement_new_with_flash (0); }
 	       | IGNORE { $$ = parsed_set_statement_new_with_ignore (0); }
+	       | TOGGLE { $$ = parsed_set_statement_new_with_toggle (0); }
 	       ;
 
 color: NONE    { $$ = COLOR_NONE; }

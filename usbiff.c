@@ -52,6 +52,15 @@ update_status (struct usbnotifier *notifier, struct config *config)
     int color = COLOR_NONE;
     int flash = 0;
 
+    struct signal *signal = config->signals;
+
+    while (signal) {
+	if (!signal->ignore && signal->toggle && signal->toggle_state) {
+	    return;
+	}
+	signal = signal->next;
+    }
+
     struct mbox *mbox = config->mailboxes;
 
     while (mbox) {
@@ -210,8 +219,21 @@ main (int argc, char *argv[])
 		    quit = 1;
 		    break;
 		default:
-		    if (!signal->ignore)
-			usbnotifier_flash (notifier, signal->color, config);
+		    if (!signal->ignore) {
+			if (signal->toggle) {
+			    if (signal->toggle_state == 1) {
+				signal->toggle_state = 0;
+				update_status (notifier, config);
+				continue;
+			    }
+			    signal->toggle_state = 1;
+			}
+
+			if (!signal->toggle)
+			    usbnotifier_flash (notifier, signal->color, config);
+			else
+			    usbnotifier_set_color (notifier, signal->color);
+		    }
 		}
 	    }
 	    break;

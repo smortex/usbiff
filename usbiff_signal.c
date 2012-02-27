@@ -44,6 +44,8 @@ signal_new (const struct config *config, int signal)
 	res->signal = signal;
 	res->color  = config->default_settings.color;
 	res->ignore = config->default_settings.ignore;
+	res->toggle = config->default_settings.toggle;
+	res->toggle_state = 0;
 	res->next   = NULL;
     }
 

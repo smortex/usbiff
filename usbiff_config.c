@@ -67,6 +67,7 @@ config_new (void)
 	res->default_settings.flash    = 1;
 	res->default_settings.ignore   = 0;
 	res->default_settings.priority = 10;
+	res->default_settings.toggle   = 0;
 
 	res->flash_delay.short_delay = 250;
 	res->flash_delay.long_delay  = 1500;
@@ -117,7 +118,7 @@ config_update_flash_delay (struct config *config, int short_delay, int long_dela
 }
 
 void
-config_update_default_settings (struct config *config, int color, int flash, int ignore, int priority)
+config_update_default_settings (struct config *config, int color, int flash, int ignore, int priority, int toggle)
 {
     if (color >= 0)
 	config->default_settings.color = color;
@@ -127,6 +128,8 @@ config_update_default_settings (struct config *config, int color, int flash, int
 	config->default_settings.ignore = ignore;
     if (priority != PRIORITY_UNDEFINED)
 	config->default_settings.priority = priority;
+    if (toggle >= 0)
+	config->default_settings.toggle = toggle;
 }
 
 void
@@ -180,7 +183,7 @@ config_add_signal (struct config *config, int signal)
 }
 
 int
-config_update_signal (struct config *config, int signal, int color, int ignore)
+config_update_signal (struct config *config, int signal, int color, int ignore, int toggle)
 {
     struct signal **p = &config->signals;
     while (*p) {
@@ -189,6 +192,8 @@ config_update_signal (struct config *config, int signal, int color, int ignore)
 		(*p)->color = color;
 	    if (ignore >= 0)
 		(*p)->ignore = ignore;
+	    if (toggle >= 0)
+		(*p)->toggle = toggle;
 	    return 0;
 	}
 	p = &((*p)->next);
