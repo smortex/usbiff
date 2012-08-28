@@ -1,7 +1,7 @@
 # Flash delay
-# The first number is the duration of the 2 first flashes in mili-seconds and
+# The first number is the duration of the 2 first flashes in milliseconds and
 # the delay between flashes.  The second argument is the duration of the third
-# and last flash in mili-seconds.
+# and last flash in milliseconds.
 # Default: 250 1500
 flash-delay 125 500
 
@@ -11,7 +11,7 @@ flash-delay 125 500
 mailboxes /var/mail/romain `find /home/romain/Mail/ -type f -name 'IN.*' ! -name '*Spam*'`
 
 # Color
-# Default color of the notification device when the user's attnetion is required
+# Default color of the notification device when the user's attention is required
 # Default: blue
 set color = blue
 
