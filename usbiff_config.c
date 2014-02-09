@@ -102,7 +102,7 @@ config_load (void)
 no_configuration_file:
     yyconfigure (res);
     parsed_conf_free (prg);
-    yyfree ();
+    yyclean ();
 
     if (yyin)
 	fclose (yyin);

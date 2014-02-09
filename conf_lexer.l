@@ -22,7 +22,7 @@ update_curent_line (void)
 }
 
 void
-yyfree (void)
+yyclean (void)
 {
     free (current_line);
     current_line = NULL;

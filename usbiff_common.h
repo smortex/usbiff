@@ -40,7 +40,7 @@ extern int yyparse (void);
 extern struct parsed_conf *prg;
 
 void		 yyconfigure (struct config *);
-void		 yyfree (void);
+void		 yyclean (void);
 void		 parsed_conf_free (struct parsed_conf *);
 
 #endif /* !_USBIFF_COMMON_H */
