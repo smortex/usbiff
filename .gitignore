@@ -1,0 +1,7 @@
+*.o
+*.[0-9].gz
+conf_lexer.c
+conf_parser.c
+conf_parser.h
+conf_parser.output
+usbiff
