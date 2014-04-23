@@ -4,6 +4,7 @@ SRCS=	conf_lexer.l conf_parser.y usbiff.c usbiff_config.c usbiff_mbox.c usbiff_s
 CC=		clang
 CFLAGS+=	-I. -I${.CURDIR}
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
+CFLAGS+=	-Dlint
 LDFLAGS+=	-lusb
 YFLAGS+=	-v
 
