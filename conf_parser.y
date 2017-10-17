@@ -193,6 +193,10 @@ parsed_mbox_new_with_command (char *cmd)
 	    if (buffer[n] == '\n')
 		buffer[n] = '\0';
 	    new = parsed_mbox_new (strdup (buffer));
+	    if (!new) {
+		syslog (LOG_ERR, "Error running \"%s\".", cmd);
+		exit (EXIT_FAILURE);
+	    }
 	    if (!p) {
 		res = p = new;
 	    } else {
