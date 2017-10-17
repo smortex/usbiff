@@ -1,7 +1,6 @@
 PROG=	usbiff
 SRCS=	conf_lexer.l conf_parser.y usbiff.c usbiff_config.c usbiff_mbox.c usbiff_signal.c usbnotifier.c
 
-CC=		clang
 CFLAGS+=	-I. -I${.CURDIR}
 CFLAGS+=	-Wall -Wextra -pedantic -Werror
 CFLAGS+=	-Dlint
