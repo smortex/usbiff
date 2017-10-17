@@ -193,7 +193,7 @@ parsed_mbox_new_with_command (char *cmd)
 	    if (buffer[n] == '\n')
 		buffer[n] = '\0';
 	    new = parsed_mbox_new (strdup (buffer));
-	    if (!res) {
+	    if (!p) {
 		res = p = new;
 	    } else {
 		p->next = new;
