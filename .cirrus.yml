@@ -1,0 +1,9 @@
+---
+build_task:
+  freebsd_instance:
+    matrix:
+      image: freebsd-10-4-release-amd64
+      image: freebsd-11-1-release-amd64
+      image: freebsd-11-2-release-amd64
+      image: freebsd-12-0-release-amd64
+  test_script: make
